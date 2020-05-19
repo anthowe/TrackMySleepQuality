@@ -103,6 +103,7 @@ class SleepTrackerViewModel(
         uiScope.launch {
             clear()
             tonight.value = null
+            _showSnackBarEvent.value = true
         }
     }
     suspend fun clear(){
@@ -110,7 +111,26 @@ class SleepTrackerViewModel(
             database.clear()
         }
     }
+    val startButtonVisible = Transformations.map(tonight){
+        it == null
+    }
 
+    val stopButtonVisible = Transformations.map(tonight){
+        it != null
+    }
 
+    val clearButtonVisible = Transformations.map(nights){
+        it?.isNotEmpty()
+    }
+
+    private var _showSnackBarEvent = MutableLiveData<Boolean>()
+
+    val showSnackBarEvent: LiveData<Boolean>
+
+    get() = _showSnackBarEvent
+
+    fun doneShowingSnackBar(){
+        _showSnackBarEvent.value = false;
+    }
 }
 

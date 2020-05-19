@@ -18,9 +18,11 @@ package com.example.android.trackmysleepquality.sleepquality
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.database.SleepNight
+import com.example.android.trackmysleepquality.formatNights
 import kotlinx.coroutines.*
 
 class SleepQualityViewModel(
@@ -52,6 +54,7 @@ class SleepQualityViewModel(
      * This is `private` because we don't want to expose the ability to set [MutableLiveData] to
      * the [Fragment]
      */
+
     private val _navigateToSleepTracker = MutableLiveData<Boolean?>()
 
     /**
