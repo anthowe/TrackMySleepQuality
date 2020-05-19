@@ -58,16 +58,10 @@ class SleepTrackerFragment : Fragment() {
 
         val sleepTrackerViewModel = ViewModelProviders.of(this,
                 viewModelFactory).get(SleepTrackerViewModel::class.java)
-        binding.sleepTrackerViewModel = sleepTrackerViewModel
-        binding.setLifecycleOwner (this)
 
-        sleepTrackerViewModel.navigateToSleepQuality.observe(this, Observer {
-            night ->
-            night?.let { this.findNavController().navigate(SleepTrackerFragmentDirections
-                    .actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
-            sleepTrackerViewModel.doneNavigating()}
-        })
         binding.sleepTrackerViewModel = sleepTrackerViewModel
+
+        binding.setLifecycleOwner (this)
 
         sleepTrackerViewModel.showSnackBarEvent.observe(this, Observer {
             if (it == true) { // Observed state is true.
@@ -78,6 +72,13 @@ class SleepTrackerFragment : Fragment() {
                 ).show()
                 sleepTrackerViewModel.doneShowingSnackBar()
             }
+        })
+
+        sleepTrackerViewModel.navigateToSleepQuality.observe(this, Observer {
+            night ->
+            night?.let { this.findNavController().navigate(SleepTrackerFragmentDirections
+                    .actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
+            sleepTrackerViewModel.doneNavigating()}
         })
 
         return binding.root

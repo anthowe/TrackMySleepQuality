@@ -32,84 +32,17 @@ import kotlinx.coroutines.*
 class SleepTrackerViewModel(
         val database: SleepDatabaseDao,
         application: Application) : AndroidViewModel(application) {
+
     private var viewModelJob = Job()
+
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-    private val nights = database.getAllNights()
-    val nightsString = Transformations.map(nights) { nights ->
-        formatNights(nights, application.resources)
-
-
-    }
-
-
-    private val _navigateToSleepQuality = MutableLiveData<SleepNight>()
-
 
     private var tonight = MutableLiveData<SleepNight?>()
-    val navigateToSleepQuality: LiveData<SleepNight>
-        get() = _navigateToSleepQuality
 
-    fun doneNavigating(){
-        _navigateToSleepQuality.value = null
-    }
-    init{
-        initializeTonight()
-    }
-    private fun initializeTonight(){
-        uiScope.launch { tonight.value = getTonightFromDatabase()
-        }
-    }
-    private suspend fun getTonightFromDatabase(): SleepNight? {
-        return withContext(Dispatchers.IO) {
-            var night = database.getTonight()
-            if (night?.endTimeMilli != night?.startTimeMilli) {
-                night = null
-            }
-            night
-        }
+    private val nights = database.getAllNights()
 
-    }
-    override fun onCleared() {
-        super.onCleared()
-        viewModelJob.cancel()
-    }
-    fun onStartTracking(){
-        uiScope.launch {
-            val newNight = SleepNight()
-           insert(newNight)
-            tonight.value = getTonightFromDatabase()
-        }
-    }
-    private suspend fun insert(night: SleepNight){
-        withContext(Dispatchers.IO){
-            database.insert(night)
-        }
-    }
-
-    fun onStopTracking(){
-        uiScope.launch {
-            val oldNight = tonight.value ?: return@launch
-            oldNight.endTimeMilli = System.currentTimeMillis()
-            update(oldNight)
-            _navigateToSleepQuality.value = oldNight
-        }
-    }
-    private suspend fun update(night: SleepNight){
-        withContext(Dispatchers.IO){
-            database.update(night)
-        }
-    }
-    fun onClear(){
-        uiScope.launch {
-            clear()
-            tonight.value = null
-            _showSnackBarEvent.value = true
-        }
-    }
-    suspend fun clear(){
-        withContext(Dispatchers.IO){
-            database.clear()
-        }
+    val nightsString = Transformations.map(nights) { nights ->
+        formatNights(nights, application.resources)
     }
     val startButtonVisible = Transformations.map(tonight){
         it == null
@@ -127,10 +60,90 @@ class SleepTrackerViewModel(
 
     val showSnackBarEvent: LiveData<Boolean>
 
-    get() = _showSnackBarEvent
+        get() = _showSnackBarEvent
+
+
+
+    private val _navigateToSleepQuality = MutableLiveData<SleepNight>()
+
+    val navigateToSleepQuality: LiveData<SleepNight>
+        get() = _navigateToSleepQuality
 
     fun doneShowingSnackBar(){
         _showSnackBarEvent.value = false;
     }
+
+    fun doneNavigating(){
+        _navigateToSleepQuality.value = null
+    }
+
+    init{
+        initializeTonight()
+    }
+
+    private fun initializeTonight(){
+        uiScope.launch { tonight.value = getTonightFromDatabase()
+        }
+    }
+    private suspend fun getTonightFromDatabase(): SleepNight? {
+        return withContext(Dispatchers.IO) {
+            var night = database.getTonight()
+            if (night?.endTimeMilli != night?.startTimeMilli) {
+                night = null
+            }
+            night
+        }
+
+    }
+    private suspend fun insert(night: SleepNight){
+        withContext(Dispatchers.IO){
+            database.insert(night)
+        }
+    }
+
+    private suspend fun update(night: SleepNight){
+        withContext(Dispatchers.IO){
+            database.update(night)
+        }
+    }
+
+    suspend fun clear(){
+        withContext(Dispatchers.IO){
+            database.clear()
+        }
+    }
+
+    fun onStartTracking(){
+        uiScope.launch {
+            val newNight = SleepNight()
+            insert(newNight)
+            tonight.value = getTonightFromDatabase()
+        }
+    }
+
+    fun onStopTracking(){
+        uiScope.launch {
+            val oldNight = tonight.value ?: return@launch
+            oldNight.endTimeMilli = System.currentTimeMillis()
+            update(oldNight)
+            _navigateToSleepQuality.value = oldNight
+        }
+    }
+
+    fun onClear(){
+        uiScope.launch {
+            clear()
+            tonight.value = null
+            _showSnackBarEvent.value = true
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelJob.cancel()
+    }
+
+
+
 }
 
